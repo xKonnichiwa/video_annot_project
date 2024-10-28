@@ -1,0 +1,8 @@
+app:
+  name: null
+
+framework:
+  express:
+    origins:
+      - 0.0.0.0
+      - localhost

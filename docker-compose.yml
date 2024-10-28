@@ -1,0 +1,59 @@
+version: '3.7'
+
+services:
+
+  api:
+    image: node:20-alpine
+    restart: "no"
+    env_file:
+      - .env.example
+      - .env
+    volumes:
+      - ./api:/project/api
+    working_dir: /project/api
+    depends_on:
+      - postgres
+    ports:
+      - ${API_HTTP_PORT_HOST}:80
+    command: [ sh, -c, "npm c set cache /tmp --global && yarn && yarn dev" ]
+    networks:
+      vmarkup-network:
+
+  web:
+    image: node:20-alpine
+    restart: "no"
+    env_file:
+      - .env.example
+      - .env
+    volumes:
+      - ./web:/project/web
+    working_dir: /project/web
+    ports:
+      - ${WEB_HTTP_PORT_HOST}:8080
+    command: [ sh, -c, "npm c set cache /tmp --global && yarn && yarn dev" ]
+
+
+  postgres:
+    image: postgres:11-alpine
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: db_name
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./ci-cd/postgres/10-entry.sh:/docker-entrypoint-initdb.d/10-entry.sh:ro
+      - ./ci-cd/postgres/dump.sql:/sql/dump.sql:ro
+    ports:
+      - ${DB_PORT_HOST}:5432
+    networks:
+      vmarkup-network:
+
+
+
+volumes:
+  postgres-data:
+
+networks:
+  vmarkup-network:
+
